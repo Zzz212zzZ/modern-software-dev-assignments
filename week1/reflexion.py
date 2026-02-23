@@ -1,6 +1,7 @@
 import os
 import re
 from typing import Callable, List, Tuple
+
 from dotenv import load_dotenv
 from ollama import chat
 
@@ -15,16 +16,16 @@ Keep the implementation minimal.
 """
 
 # TODO: Fill this in!
-YOUR_REFLEXION_PROMPT = ""
+YOUR_REFLEXION_PROMPT = """You are a coding assistant. You will be given a previous implementation that failed some tests, along with the test failure details. Fix the code so all tests pass. Output ONLY a single fenced Python code block with the corrected function. No prose or comments."""
 
 
 # Ground-truth test suite used to evaluate generated code
 SPECIALS = set("!@#$%^&*()-_")
 TEST_CASES: List[Tuple[str, bool]] = [
-    ("Password1!", True),       # valid
-    ("password1!", False),      # missing uppercase
-    ("Password!", False),       # missing digit
-    ("Password1", False),       # missing special
+    ("Password1!", True),  # valid
+    ("password1!", False),  # missing uppercase
+    ("Password!", False),  # missing digit
+    ("Password1", False),  # missing special
 ]
 
 
@@ -96,7 +97,16 @@ def your_build_reflexion_context(prev_code: str, failures: List[str]) -> str:
 
     Return a string that will be sent as the user content alongside the reflexion system prompt.
     """
-    return ""
+    failure_str = "\n".join(f"- {f}" for f in failures)
+    return f"""Previous code:
+```python
+{prev_code}
+```
+
+Test failures:
+{failure_str}
+
+Fix the function so all tests pass. Output ONLY the corrected code block."""
 
 
 def apply_reflexion(

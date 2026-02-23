@@ -1,5 +1,6 @@
 import os
 import re
+
 from dotenv import load_dotenv
 from ollama import chat
 
@@ -8,7 +9,21 @@ load_dotenv()
 NUM_RUNS_TIMES = 5
 
 # TODO: Fill this in!
-YOUR_SYSTEM_PROMPT = ""
+YOUR_SYSTEM_PROMPT = """You are a math expert. Solve modular exponentiation step by step.
+
+Example: What is 3^102 (mod 100)?
+
+Step 1: Find the cycle of powers of 3 mod 100:
+3^1=3, 3^2=9, 3^3=27, 3^4=81, 3^5=43, 3^6=29, 3^7=87, 3^8=61, 3^9=83, 3^10=49, 3^11=47, 3^12=41, 3^13=23, 3^14=69, 3^15=7, 3^16=21, 3^17=63, 3^18=89, 3^19=67, 3^20=1.
+The cycle length is 20 (since 3^20 mod 100 = 1).
+
+Step 2: Compute 102 mod 20 = 2.
+
+Step 3: Look up 3^2 mod 100 = 9.
+
+Answer: 9
+
+Follow this exact method. Show your work, then give the final answer as "Answer: <number>"."""
 
 
 USER_PROMPT = """

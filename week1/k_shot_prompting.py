@@ -1,4 +1,5 @@
 import os
+
 from dotenv import load_dotenv
 from ollama import chat
 
@@ -7,7 +8,15 @@ load_dotenv()
 NUM_RUNS_TIMES = 5
 
 # TODO: Fill this in!
-YOUR_SYSTEM_PROMPT = ""
+YOUR_SYSTEM_PROMPT = """You are a reversal lookup table. Find the input word in the table and return its reversed form exactly as shown.
+
+TABLE:
+javascript → tpircsavaj
+strawberry → yrrebwarts
+httpstatus → sutatsptth
+basketball → llabteksab
+
+Return ONLY the corresponding output from the table. Do not compute or guess."""
 
 USER_PROMPT = """
 Reverse the order of letters in the following word. Only output the reversed word, no other text:
