@@ -6,9 +6,24 @@ from typing import List
 import json
 from typing import Any
 from ollama import chat
+from pydantic import BaseModel
 from dotenv import load_dotenv
 
 load_dotenv()
+
+
+# -- Structured output schema for LLM-based extraction --
+class ActionItems(BaseModel):
+    """Schema enforcing Ollama to return a JSON object with an 'items' array of strings."""
+    items: list[str]
+
+
+DEFAULT_MODEL = "llama3.1:8b"
+
+
+def _get_model_name() -> str:
+    """Return the Ollama model name from OLLAMA_MODEL env var or default."""
+    return os.environ.get("OLLAMA_MODEL", DEFAULT_MODEL)
 
 BULLET_PREFIX_PATTERN = re.compile(r"^\s*([-*•]|\d+\.)\s+")
 KEYWORD_PREFIXES = (
@@ -87,3 +102,32 @@ def _looks_imperative(sentence: str) -> bool:
         "investigate",
     }
     return first.lower() in imperative_starters
+
+
+# -- LLM-powered extraction using Ollama with structured outputs --
+def extract_action_items_llm(text: str) -> list[str]:
+    """Extract action items from text using an LLM via Ollama.
+
+    Uses structured outputs to ensure the response is a JSON array of strings.
+    Returns an empty list for empty input without calling the LLM.
+    """
+    if not text or not text.strip():
+        return []
+
+    prompt = (
+        "Extract all action items from the following text. "
+        "Action items are tasks, to-dos, or things that need to be done. "
+        "Return each action item as a concise, standalone string. "
+        "If there are no action items, return an empty list.\n\n"
+        f"Text:\n{text}"
+    )
+
+    response = chat(
+        model=_get_model_name(),
+        messages=[{"role": "user", "content": prompt}],
+        format=ActionItems.model_json_schema(),
+        options={"temperature": 0},
+    )
+
+    result = ActionItems.model_validate_json(response.message.content)
+    return result.items
