@@ -25,8 +25,11 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-mcp = FastMCP("tmdb-discovery", host="0.0.0.0")
-
+mcp = FastMCP(
+    "tmdb-discovery",
+    host="0.0.0.0",
+    stateless_http=True,
+)
 _client: TMDBClient | None = None
 
 
