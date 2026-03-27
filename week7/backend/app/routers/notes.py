@@ -1,5 +1,3 @@
-from typing import Optional
-
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import asc, desc, select
 from sqlalchemy.orm import Session
@@ -14,7 +12,7 @@ router = APIRouter(prefix="/notes", tags=["notes"])
 @router.get("/", response_model=list[NoteRead])
 def list_notes(
     db: Session = Depends(get_db),
-    q: Optional[str] = None,
+    q: str | None = None,
     skip: int = 0,
     limit: int = Query(50, le=200),
     sort: str = Query("-created_at", description="Sort by field, prefix with - for desc"),
@@ -58,11 +56,22 @@ def patch_note(note_id: int, payload: NotePatch, db: Session = Depends(get_db)) 
     return NoteRead.model_validate(note)
 
 
+@router.put("/{note_id}", response_model=NoteRead)
+def put_note(note_id: int, payload: NoteCreate, db: Session = Depends(get_db)) -> NoteRead:
+    note = db.get(Note, note_id)
+    if not note:
+        raise HTTPException(status_code=404, detail="Note not found")
+    note.title = payload.title
+    note.content = payload.content
+    db.add(note)
+    db.flush()
+    db.refresh(note)
+    return NoteRead.model_validate(note)
+
+
 @router.get("/{note_id}", response_model=NoteRead)
 def get_note(note_id: int, db: Session = Depends(get_db)) -> NoteRead:
     note = db.get(Note, note_id)
     if not note:
         raise HTTPException(status_code=404, detail="Note not found")
     return NoteRead.model_validate(note)
-
-
